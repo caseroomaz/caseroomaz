@@ -1,85 +1,108 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CaseRoomAZ</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CaseRoomAZ</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 
 <body class="bg-white text-black">
 
-<!-- HEADER -->
-<header class="p-4 flex justify-between items-center border-b">
-  <h1 class="text-xl font-bold">CaseRoomAZ</h1>
-  <a href="#admin" class="text-sm">Admin</a>
+<header class="p-4 border-b flex justify-between">
+  <h1 class="font-bold text-xl">CaseRoomAZ</h1>
 </header>
 
 <!-- PRODUCTS -->
 <div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"></div>
 
 <!-- ADMIN -->
-<section id="admin" class="p-4 border-t mt-10">
-  <h2 class="text-xl font-bold mb-3">Admin Panel</h2>
+<section class="p-4 border-t">
+<h2 class="font-bold text-lg mb-3">Admin Panel</h2>
 
-  <input id="name" placeholder="Məhsul adı" class="border p-2 w-full mb-2"/>
-  <input id="price" placeholder="Qiymət" class="border p-2 w-full mb-2"/>
-  <input id="category" placeholder="Kateqoriya" class="border p-2 w-full mb-2"/>
-  <textarea id="description" placeholder="Təsvir" class="border p-2 w-full mb-2"></textarea>
+<input id="name" placeholder="Ad" class="border p-2 w-full mb-2"/>
+<input id="price" placeholder="Qiymət" class="border p-2 w-full mb-2"/>
+<input id="category" placeholder="Kateqoriya" class="border p-2 w-full mb-2"/>
+<textarea id="description" placeholder="Təsvir" class="border p-2 w-full mb-2"></textarea>
 
-  <input id="image1" placeholder="Şəkil 1 URL" class="border p-2 w-full mb-2"/>
-  <input id="image2" placeholder="Şəkil 2 URL" class="border p-2 w-full mb-2"/>
-  <input id="image3" placeholder="Şəkil 3 URL" class="border p-2 w-full mb-2"/>
+<input type="file" id="images" multiple class="mb-2"/>
 
-  <button onclick="addProduct()" class="bg-black text-white px-4 py-2">
-    Məhsul əlavə et
-  </button>
+<button onclick="addProduct()" class="bg-black text-white px-4 py-2">
+Məhsul əlavə et
+</button>
 </section>
 
 <script>
-const supabase = window.supabase.createClient(
+const supabase = supabase.createClient(
   "https://teqgdnjukgrzxovtypwj.supabase.co",
-  "SB_PUBLISHABLE_KEY_BURAYA_YAZ"
+  "YOUR_ANON_KEY"
 );
 
-// LOAD PRODUCTS
-async function loadProducts() {
-  let { data } = await supabase.from('products').select('*').order('id', { ascending: false });
+// upload image to supabase storage
+async function uploadImages(files){
+  let urls = [];
+
+  for (let file of files) {
+    const fileName = Date.now() + "-" + file.name;
+
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .upload(fileName, file);
+
+    if (error) console.log(error);
+
+    const { data: publicUrl } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
+
+    urls.push(publicUrl.publicUrl);
+  }
+
+  return urls;
+}
+
+// add product
+async function addProduct(){
+
+  const files = document.getElementById("images").files;
+
+  const images = await uploadImages(files);
+
+  await supabase.from("products").insert([{
+    name: document.getElementById("name").value,
+    price: document.getElementById("price").value,
+    category: document.getElementById("category").value,
+    description: document.getElementById("description").value,
+    images: images
+  }]);
+
+  alert("Məhsul əlavə olundu!");
+  loadProducts();
+}
+
+// load products
+async function loadProducts(){
+
+  let { data } = await supabase
+    .from("products")
+    .select("*")
+    .order("id", { ascending:false });
 
   document.getElementById("products").innerHTML = data.map(p => `
-    <div class="border p-2 rounded">
-      <img src="${p.image1}" class="h-40 w-full object-cover"/>
+    <div class="border rounded p-2">
+      <img src="${p.images?.[0]}" class="h-40 w-full object-cover"/>
       <h3 class="font-bold mt-2">${p.name}</h3>
       <p>${p.price} AZN</p>
-      <a target="_blank" 
-         href="https://wa.me/994703099330?text=${p.name} sifariş etmək istəyirəm"
-         class="text-green-600 text-sm">
-         WhatsApp
+
+      <a target="_blank"
+      href="https://wa.me/994703099330?text=${p.name} sifariş etmək istəyirəm"
+      class="text-green-600 text-sm">
+      WhatsApp
       </a>
     </div>
   `).join("");
-}
-
-// ADD PRODUCT
-async function addProduct() {
-  const name = document.getElementById('name').value;
-  const price = document.getElementById('price').value;
-  const category = document.getElementById('category').value;
-  const description = document.getElementById('description').value;
-
-  const image1 = document.getElementById('image1').value;
-  const image2 = document.getElementById('image2').value;
-  const image3 = document.getElementById('image3').value;
-
-  await supabase.from('products').insert([{
-    name, price, category, description,
-    image1, image2, image3
-  }]);
-
-  alert("Məhsul əlavə edildi!");
-  loadProducts();
 }
 
 loadProducts();
