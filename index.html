@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-.card:hover { transform: scale(1.02); transition: 0.2s; }
+.card:hover { transform: scale(1.03); transition: 0.2s; }
 </style>
 </head>
 
@@ -20,13 +20,11 @@
   <button onclick="openAdmin()">Admin</button>
 </header>
 
-<!-- PRODUCTS -->
 <div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"></div>
 
-<!-- ADMIN PANEL -->
+<!-- ADMIN LOGIN -->
 <div id="adminPanel" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
   <div class="bg-white p-4 w-80 rounded">
-
     <h2 class="font-bold mb-2">Admin Login</h2>
 
     <input id="u" placeholder="username" class="border p-2 w-full mb-2"/>
@@ -35,7 +33,6 @@
     <button onclick="login()" class="bg-black text-white px-4 py-2 w-full">
       Giriş
     </button>
-
   </div>
 </div>
 
@@ -61,21 +58,18 @@ const client = window.supabase.createClient(
   "sb_publishable_N_DPs4mkp9GsB4phSOnuUw_Y6W-TmSL"
 );
 
-let isAdmin = false;
-
 // ADMIN LOGIN
 async function login(){
   let u = document.getElementById('u').value;
   let p = document.getElementById('p').value;
 
-  let { data } = await supabase
+  let { data } = await client
     .from('admins')
     .select('*')
     .eq('username', u)
     .eq('password', p);
 
-  if(data.length > 0){
-    isAdmin = true;
+  if(data && data.length > 0){
     document.getElementById('adminPanel').classList.add('hidden');
     document.getElementById('addBox').classList.remove('hidden');
     alert("Admin giriş uğurlu!");
@@ -93,13 +87,13 @@ async function uploadImages(files){
   let urls = [];
 
   for(let f of files){
-    let fileName = Date.now() + f.name;
+    let fileName = Date.now() + "-" + f.name;
 
-    await supabase.storage
+    await client.storage
       .from('product-images')
       .upload(fileName, f);
 
-    let { data } = supabase.storage
+    let { data } = client.storage
       .from('product-images')
       .getPublicUrl(fileName);
 
@@ -114,7 +108,7 @@ async function addProduct(){
   let files = document.getElementById('images').files;
   let images = await uploadImages(files);
 
-  await supabase.from('products').insert([{
+  await client.from('products').insert([{
     name: name.value,
     price: price.value,
     category: category.value,
@@ -126,14 +120,14 @@ async function addProduct(){
   loadProducts();
 }
 
-// LOAD
+// LOAD PRODUCTS
 async function loadProducts(){
-  let { data } = await supabase.from('products').select('*');
+  let { data } = await client.from('products').select('*');
 
   document.getElementById('products').innerHTML =
-  data.map(p => `
+  (data || []).map(p => `
     <div class="border p-2 rounded card">
-      <img src="${p.images?.[0]}" class="h-40 w-full object-cover"/>
+      <img src="${p.images?.[0] || ''}" class="h-40 w-full object-cover"/>
       <h3 class="font-bold">${p.name}</h3>
       <p>${p.price} AZN</p>
 
