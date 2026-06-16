@@ -17,40 +17,35 @@
 
 <header class="p-4 border-b flex justify-between">
   <h1 class="font-bold text-xl">CaseRoomAZ</h1>
-  <button onclick="openAdmin()">Admin</button>
 </header>
 
+<!-- FILTER -->
+<div class="p-3 flex gap-2">
+  <button onclick="filterCat('all')" class="border px-3 py-1">Hamısı</button>
+  <button onclick="filterCat('case')" class="border px-3 py-1">Case</button>
+  <button onclick="filterCat('charger')" class="border px-3 py-1">Charger</button>
+</div>
+
+<!-- PRODUCTS -->
 <div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"></div>
 
-<!-- ADMIN LOGIN -->
-<div id="adminPanel" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white p-4 w-80 rounded">
-    <h2 class="font-bold mb-2">Admin Login</h2>
+<!-- DETAIL MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+  <div class="bg-white p-4 w-96 rounded">
+    <img id="mimg" class="w-full h-60 object-cover"/>
+    <h2 id="mname" class="font-bold mt-2"></h2>
+    <p id="mprice"></p>
+    <p id="mdesc" class="text-sm mt-2"></p>
 
-    <input id="u" placeholder="username" class="border p-2 w-full mb-2"/>
-    <input id="p" type="password" placeholder="password" class="border p-2 w-full mb-2"/>
+    <a id="mwa" class="block mt-3 bg-green-600 text-white text-center py-2">
+      WhatsApp
+    </a>
 
-    <button onclick="login()" class="bg-black text-white px-4 py-2 w-full">
-      Giriş
+    <button onclick="closeModal()" class="mt-2 w-full border py-1">
+      Bağla
     </button>
   </div>
 </div>
-
-<!-- ADD PRODUCT -->
-<section id="addBox" class="p-4 border-t hidden">
-<h2 class="font-bold mb-2">Məhsul əlavə et</h2>
-
-<input id="name" placeholder="Ad" class="border p-2 w-full mb-2"/>
-<input id="price" placeholder="Qiymət" class="border p-2 w-full mb-2"/>
-<input id="category" placeholder="Kateqoriya" class="border p-2 w-full mb-2"/>
-<textarea id="description" placeholder="Təsvir" class="border p-2 w-full mb-2"></textarea>
-
-<input type="file" id="images" multiple class="mb-2"/>
-
-<button onclick="addProduct()" class="bg-black text-white px-4 py-2">
-Əlavə et
-</button>
-</section>
 
 <script>
 const client = window.supabase.createClient(
@@ -58,85 +53,52 @@ const client = window.supabase.createClient(
   "sb_publishable_N_DPs4mkp9GsB4phSOnuUw_Y6W-TmSL"
 );
 
-// ADMIN LOGIN
-async function login(){
-  let u = document.getElementById('u').value;
-  let p = document.getElementById('p').value;
+let allProducts = [];
+let currentCat = "all";
 
-  let { data } = await client
-    .from('admins')
-    .select('*')
-    .eq('username', u)
-    .eq('password', p);
-
-  if(data && data.length > 0){
-    document.getElementById('adminPanel').classList.add('hidden');
-    document.getElementById('addBox').classList.remove('hidden');
-    alert("Admin giriş uğurlu!");
-  } else {
-    alert("Səhv məlumat!");
-  }
-}
-
-function openAdmin(){
-  document.getElementById('adminPanel').classList.remove('hidden');
-}
-
-// UPLOAD
-async function uploadImages(files){
-  let urls = [];
-
-  for(let f of files){
-    let fileName = Date.now() + "-" + f.name;
-
-    await client.storage
-      .from('product-images')
-      .upload(fileName, f);
-
-    let { data } = client.storage
-      .from('product-images')
-      .getPublicUrl(fileName);
-
-    urls.push(data.publicUrl);
-  }
-
-  return urls;
-}
-
-// ADD PRODUCT
-async function addProduct(){
-  let files = document.getElementById('images').files;
-  let images = await uploadImages(files);
-
-  await client.from('products').insert([{
-    name: name.value,
-    price: price.value,
-    category: category.value,
-    description: description.value,
-    images: images
-  }]);
-
-  alert("Məhsul əlavə olundu!");
-  loadProducts();
-}
-
-// LOAD PRODUCTS
+// LOAD
 async function loadProducts(){
   let { data } = await client.from('products').select('*');
+  allProducts = data || [];
+  render(allProducts);
+}
 
+// RENDER
+function render(list){
   document.getElementById('products').innerHTML =
-  (data || []).map(p => `
-    <div class="border p-2 rounded card">
+  list.map(p => `
+    <div class="border p-2 rounded card cursor-pointer" onclick='openProduct(${JSON.stringify(p)})'>
       <img src="${p.images?.[0] || ''}" class="h-40 w-full object-cover"/>
       <h3 class="font-bold">${p.name}</h3>
       <p>${p.price} AZN</p>
 
-      <a href="https://wa.me/994703099330?text=${p.name}"
-      class="text-green-600 text-sm">
-      WhatsApp
-      </a>
+      ${p.is_new ? '<span class="text-blue-500 text-xs">Yeni</span>' : ''}
+      ${p.is_discount ? '<span class="text-red-500 text-xs">Endirim</span>' : ''}
     </div>
   `).join('');
+}
+
+// FILTER
+function filterCat(cat){
+  currentCat = cat;
+  if(cat === "all") return render(allProducts);
+  render(allProducts.filter(p => p.category === cat));
+}
+
+// MODAL
+function openProduct(p){
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('mimg').src = p.images?.[0];
+  document.getElementById('mname').innerText = p.name;
+  document.getElementById('mprice').innerText = p.price + " AZN";
+  document.getElementById('mdesc').innerText = p.description || "";
+
+  document.getElementById('mwa').href =
+    "https://wa.me/994703099330?text=" + encodeURIComponent(p.name);
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.add('hidden');
 }
 
 loadProducts();
