@@ -54,7 +54,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--gray50);color:var
 }
 .btn-admin:hover{background:rgba(255,255,255,0.15)}
 
-/* ── CATEGORY FILTER ── */
+/* ── SEARCH ── */
+.search-wrap{flex:1;max-width:340px;margin:0 12px;position:relative}
+.search-input{
+  width:100%;padding:8px 14px 8px 36px;
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);
+  border-radius:20px;color:#fff;font-size:13px;font-family:inherit;outline:none;
+  transition:all 0.15s;
+}
+.search-input::placeholder{color:rgba(255,255,255,0.45)}
+.search-input:focus{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.4)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:0.5;pointer-events:none;font-size:14px}
+.search-clear{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;
+  font-size:16px;display:none;padding:0;line-height:1;
+}
+@media(max-width:400px){.search-wrap{max-width:140px;margin:0 6px}}
 .filter-bar{
   background:var(--navy2);
   padding:0 16px;
@@ -210,7 +226,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--gray50);color:var
   font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;
   margin-bottom:14px;text-transform:capitalize;letter-spacing:0.3px;
 }
-.pmodal-desc{font-size:14px;color:var(--gray600);line-height:1.8;margin-bottom:20px}
+.pmodal-desc{font-size:14px;color:var(--gray600);line-height:1.8;margin-bottom:20px;white-space:pre-wrap}
 .btn-wa{
   display:flex;align-items:center;justify-content:center;gap:8px;
   background:#25d366;color:#fff;text-align:center;text-decoration:none;
@@ -324,6 +340,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--gray50);color:var
     <img class="logo-img" src="logo.png" alt="CaseRoomAZ" onerror="this.style.display='none'"/>
     <span class="logo-text">CaseRoomAZ</span>
   </a>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Məhsul axtar..."
+      oninput="onSearch(this.value)" autocomplete="off"/>
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
   <div class="header-right">
     <span class="admin-pill" id="adminBadge" style="display:none">ADMIN</span>
     <button class="btn-admin" id="adminBtn" onclick="toggleAdmin()">Admin</button>
@@ -505,6 +527,20 @@ function buildFilterBar() {
   });
 }
 
+/* ── SEARCH ── */
+let searchQ = '';
+function onSearch(val){
+  searchQ = val.trim().toLowerCase();
+  document.getElementById('searchClear').style.display = searchQ ? 'block' : 'none';
+  applyFilter();
+}
+function clearSearch(){
+  searchQ='';
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchClear').style.display='none';
+  applyFilter();
+}
+
 /* ── FILTER ── */
 function filterCat(cat, btn) {
   curCat = cat;
@@ -515,6 +551,11 @@ function filterCat(cat, btn) {
 
 function applyFilter() {
   filtered = curCat === 'all' ? all : all.filter(p => p.category === curCat);
+  if(searchQ) filtered = filtered.filter(p =>
+    p.name.toLowerCase().includes(searchQ) ||
+    (p.description||'').toLowerCase().includes(searchQ) ||
+    (CAT_LABELS[p.category]||'').toLowerCase().includes(searchQ)
+  );
   render(filtered);
 }
 
@@ -664,30 +705,62 @@ function logOut() {
 }
 
 /* ── IMAGES ── */
+let existingImgs = []; // edit zamanı mövcud şəkillər
+
 function previewImgs(input) {
   files = Array.from(input.files);
+  renderImgPrev();
+}
+
+function renderImgPrev(){
   const prev = document.getElementById('imgPrev');
   prev.innerHTML='';
-  files.forEach(f => {
+  // mövcud şəkillər (edit zamanı)
+  existingImgs.forEach((u,i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText='position:relative;display:inline-block';
+    wrap.innerHTML=`<img src="${u}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--gray200)"/>
+      <button onclick="removeExistingImg(${i})" style="position:absolute;top:-6px;right:-6px;background:#e53e3e;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✕</button>`;
+    prev.appendChild(wrap);
+  });
+  // yeni seçilən şəkillər
+  files.forEach((f,i) => {
     const r = new FileReader();
     r.onload = e => {
-      const img=document.createElement('img');
-      img.src=e.target.result; prev.appendChild(img);
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:relative;display:inline-block';
+      wrap.innerHTML=`<img src="${e.target.result}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid var(--blue)"/>
+        <button onclick="removeNewImg(${i})" style="position:absolute;top:-6px;right:-6px;background:#e53e3e;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✕</button>`;
+      prev.appendChild(wrap);
     };
     r.readAsDataURL(f);
   });
 }
 
+function removeExistingImg(i){
+  existingImgs.splice(i,1);
+  renderImgPrev();
+}
+function removeNewImg(i){
+  files.splice(i,1);
+  renderImgPrev();
+}
+
 async function uploadImgs(flist) {
   const urls=[];
   for (const f of flist) {
-    const nm=`${Date.now()}_${Math.random().toString(36).slice(2)}_${f.name.replace(/\s/g,'_')}`;
-    const { error } = await db.storage.from('product-images').upload(nm, f, { cacheControl:'3600', upsert:false });
-    if (!error) {
-      const { data } = db.storage.from('product-images').getPublicUrl(nm);
-      urls.push(data.publicUrl);
-    } else {
-      console.error('Upload error:', error.message);
+    try {
+      const nm=`${Date.now()}_${Math.random().toString(36).slice(2)}_${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+      const { data, error } = await db.storage.from('product-images').upload(nm, f, { cacheControl:'3600', upsert:true });
+      if (error) {
+        console.error('Upload error:', error.message);
+        showToast('⚠️ Şəkil yüklənmədi: '+error.message, 4000);
+        continue;
+      }
+      const { data: urlData } = db.storage.from('product-images').getPublicUrl(nm);
+      if(urlData?.publicUrl) urls.push(urlData.publicUrl);
+    } catch(e) {
+      console.error('Upload exception:', e);
     }
   }
   return urls;
@@ -713,8 +786,12 @@ async function saveProduct() {
   btn.textContent='Saxlanılır...'; btn.disabled=true;
 
   try {
-    let imgs=[];
-    if (files.length) imgs = await uploadImgs(files);
+    let newUrls=[];
+    if (files.length) {
+      showToast('⏳ Şəkillər yüklənir...', 10000);
+      newUrls = await uploadImgs(files);
+    }
+    const allImgs = [...existingImgs, ...newUrls];
 
     const row = {
       name, price: parseFloat(price),
@@ -723,16 +800,15 @@ async function saveProduct() {
       whatsapp_text: wa || null,
       is_new: isNew,
       is_discount: isDisc,
-      stock: inStock
+      stock: inStock,
+      images: allImgs
     };
 
     if (editId) {
-      if (imgs.length) row.images=imgs;
       const { error } = await db.from('products').update(row).eq('id', editId);
       if (error) throw error;
       showToast('✅ Məhsul yeniləndi!');
     } else {
-      row.images=imgs;
       const { error } = await db.from('products').insert([row]);
       if (error) throw error;
       showToast('✅ Məhsul əlavə edildi!');
@@ -750,6 +826,8 @@ async function saveProduct() {
 function startEdit(id) {
   const p=all.find(x=>x.id===id); if(!p) return;
   editId=p.id;
+  existingImgs = [...(p.images||[])];
+  files = [];
   document.getElementById('fName').value     = p.name;
   document.getElementById('fPrice').value    = p.price;
   document.getElementById('fOldPrice').value = p.old_price||'';
@@ -759,9 +837,8 @@ function startEdit(id) {
   document.getElementById('fNew').checked    = !!p.is_new;
   document.getElementById('fDisc').checked   = !!p.is_discount;
   document.getElementById('fStock').checked  = p.stock!==false;
-  const prev=document.getElementById('imgPrev');
-  prev.innerHTML='';
-  (p.images||[]).forEach(u=>{const img=document.createElement('img');img.src=u;prev.appendChild(img);});
+  document.getElementById('fImgs').value     = '';
+  renderImgPrev();
   document.getElementById('formTitle').textContent='✏ Məhsulu düzəlt';
   document.getElementById('saveBtn').textContent='Yenilə';
   document.getElementById('cancelBtn').style.display='inline-block';
@@ -771,7 +848,7 @@ function startEdit(id) {
 function cancelEdit(){ resetForm(); }
 
 function resetForm(){
-  editId=null; files=[];
+  editId=null; files=[]; existingImgs=[];
   ['fName','fPrice','fOldPrice','fDesc','fWA'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('fCat').value='';
   document.getElementById('fNew').checked=false;
