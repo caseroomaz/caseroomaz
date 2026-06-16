@@ -191,11 +191,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--gray50);color:var
   .pmodal-main-img-wrap{min-height:280px}
   .pmodal-img{max-height:280px}
 }
-.pmodal-img-badges{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:5px}
+.main-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(13,31,53,0.6);color:#fff;border:none;
+  font-size:22px;cursor:pointer;z-index:3;
+  display:none;align-items:center;justify-content:center;
+  transition:background 0.15s;line-height:1;
+}
+.main-arrow:hover{background:rgba(13,31,53,0.9)}
+.main-arrow.left{left:10px}
+.main-arrow.right{right:10px}
+.has-multi .main-arrow{display:flex}
+.pmodal-img-badges{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:5px;z-index:4}
+.pmodal-thumbs-wrap{position:relative;background:var(--gray50);border-top:1px solid var(--gray200)}
 .pmodal-thumbs{
   display:flex;gap:8px;padding:12px;overflow-x:auto;
-  background:var(--gray50);border-top:1px solid var(--gray200);
   -ms-overflow-style:none;scrollbar-width:none;
+  scroll-behavior:smooth;
 }
 .pmodal-thumbs::-webkit-scrollbar{display:none}
 .pmodal-thumbs img{
@@ -205,6 +218,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--gray50);color:var
 }
 .pmodal-thumbs img.on{border-color:var(--navy)}
 .pmodal-thumbs img:hover{border-color:var(--blue)}
+.thumb-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;
+  background:var(--navy);color:#fff;border:none;
+  font-size:14px;cursor:pointer;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0.85;transition:opacity 0.15s;box-shadow:var(--shadow);
+}
+.thumb-arrow:hover{opacity:1}
+.thumb-arrow.left{left:4px}
+.thumb-arrow.right{right:4px}
 
 .pmodal-right{padding:20px;display:flex;flex-direction:column}
 .pmodal-out{
@@ -430,8 +454,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--gray50);color:var
       <div class="pmodal-main-img-wrap">
         <img class="pmodal-img" id="mImg" src="" alt=""/>
         <div class="pmodal-img-badges" id="mBadges"></div>
+        <button class="main-arrow left" onclick="modalNav(-1)" id="mArrL">‹</button>
+        <button class="main-arrow right" onclick="modalNav(1)" id="mArrR">›</button>
       </div>
-      <div class="pmodal-thumbs" id="mThumbs"></div>
+      <div class="pmodal-thumbs-wrap">
+        <button class="thumb-arrow left" onclick="thumbScroll(-1)" id="tArrL">‹</button>
+        <div class="pmodal-thumbs" id="mThumbs"></div>
+        <button class="thumb-arrow right" onclick="thumbScroll(1)" id="tArrR">›</button>
+      </div>
     </div>
     <!-- RIGHT: info -->
     <div class="pmodal-right">
@@ -630,14 +660,21 @@ function openP(id) {
     (p.is_discount || disc > 0) ? `<span class="b-sale" style="font-size:12px;padding:3px 9px">${disc>0?'-'+disc+'%':'SALE'}</span>` : ''
   ].join('');
 
+  const mainWrap = document.querySelector('.pmodal-main-img-wrap');
+  if(imgs.length > 1) mainWrap.classList.add('has-multi');
+  else mainWrap.classList.remove('has-multi');
+  modalImgs = imgs;
+  modalIdx = 0;
+
   const th = document.getElementById('mThumbs');
+  const wrap = document.querySelector('.pmodal-thumbs-wrap');
   if (imgs.length > 1) {
     th.innerHTML = imgs.map((u, i) =>
-      `<img src="${u}" class="${i===0?'on':''}" onclick="swImg(this,'${u}')" alt="" loading="lazy"/>`
+      `<img src="${u}" class="${i===0?'on':''}" onclick="swImg(this,'${u}',${i})" alt="" loading="lazy"/>`
     ).join('');
-    th.style.display = 'flex';
+    wrap.style.display = 'block';
   } else {
-    th.innerHTML=''; th.style.display = 'none';
+    th.innerHTML=''; wrap.style.display = 'none';
   }
 
   const wa = p.whatsapp_text || `Salam! "${p.name}" məhsulunu sifariş etmək istəyirəm.\nQiymət: ${p.price} ₼`;
@@ -646,10 +683,30 @@ function openP(id) {
   document.body.style.overflow='hidden';
 }
 
-function swImg(el, url) {
+let modalImgs = [], modalIdx = 0;
+
+function thumbScroll(dir){
+  const th=document.getElementById('mThumbs');
+  th.scrollBy({left: dir*80, behavior:'smooth'});
+}
+
+function swImg(el, url, idx) {
+  modalIdx = idx;
   document.getElementById('mImg').src = url;
   document.querySelectorAll('#mThumbs img').forEach(i => i.classList.remove('on'));
   el.classList.add('on');
+  // scroll thumbnail into view
+  el.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+}
+
+function modalNav(dir){
+  if(!modalImgs.length) return;
+  modalIdx = (modalIdx + dir + modalImgs.length) % modalImgs.length;
+  document.getElementById('mImg').src = modalImgs[modalIdx];
+  document.querySelectorAll('#mThumbs img').forEach((img,i)=>{
+    img.classList.toggle('on', i===modalIdx);
+    if(i===modalIdx) img.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  });
 }
 function closePModal() {
   document.getElementById('pOverlay').classList.remove('on');
@@ -876,6 +933,10 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){
     if(document.getElementById('pOverlay').classList.contains('on')) closePModal();
     if(document.getElementById('lOverlay').classList.contains('on')) closeLModal();
+  }
+  if(document.getElementById('pOverlay').classList.contains('on')){
+    if(e.key==='ArrowLeft') modalNav(-1);
+    if(e.key==='ArrowRight') modalNav(1);
   }
 });
 
