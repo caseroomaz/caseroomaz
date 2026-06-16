@@ -8,17 +8,23 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<style>
-.card:hover { transform: scale(1.03); transition: 0.2s; }
-</style>
 </head>
 
 <body class="bg-white text-black">
 
 <header class="p-4 border-b flex justify-between">
   <h1 class="font-bold text-xl">CaseRoomAZ</h1>
-  <button onclick="openAdmin()" class="border px-2">Admin</button>
+  <div>
+    <button onclick="openAdmin()" class="border px-2">Admin</button>
+    <span id="adminStatus" class="ml-2 text-sm text-green-600"></span>
+  </div>
 </header>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden p-3 border-b text-sm">
+  <b>Dashboard:</b>
+  <span id="count"></span> məhsul
+</div>
 
 <!-- FILTER -->
 <div class="p-3 flex gap-2">
@@ -30,7 +36,7 @@
 <!-- PRODUCTS -->
 <div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"></div>
 
-<!-- DETAIL MODAL -->
+<!-- MODAL -->
 <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
   <div class="bg-white p-4 w-96 rounded">
     <img id="mimg" class="w-full h-60 object-cover"/>
@@ -38,15 +44,13 @@
     <p id="mprice"></p>
     <p id="mdesc" class="text-sm mt-2"></p>
 
-    <a id="mwa" class="block bg-green-600 text-white text-center py-2 mt-3">
-      WhatsApp
-    </a>
+    <a id="mwa" class="block bg-green-600 text-white text-center py-2 mt-3">WhatsApp</a>
 
     <button onclick="closeModal()" class="mt-2 w-full border">Bağla</button>
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ADMIN LOGIN -->
 <div id="adminPanel" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
   <div class="bg-white p-4 w-80 rounded">
     <h2 class="font-bold mb-2">Admin Login</h2>
@@ -54,15 +58,13 @@
     <input id="u" placeholder="username" class="border p-2 w-full mb-2"/>
     <input id="p" type="password" placeholder="password" class="border p-2 w-full mb-2"/>
 
-    <button onclick="login()" class="bg-black text-white px-4 py-2 w-full">
-      Giriş
-    </button>
+    <button onclick="login()" class="bg-black text-white px-4 py-2 w-full">Giriş</button>
   </div>
 </div>
 
-<!-- ADD PRODUCT -->
+<!-- ADD / EDIT -->
 <section id="addBox" class="hidden p-4 border-t">
-<h2 class="font-bold mb-2">Məhsul əlavə et</h2>
+<h2 class="font-bold mb-2">Məhsul paneli</h2>
 
 <input id="name" placeholder="Ad" class="border p-2 w-full mb-2"/>
 <input id="price" placeholder="Qiymət" class="border p-2 w-full mb-2"/>
@@ -71,9 +73,8 @@
 
 <input type="file" id="images" multiple class="mb-2"/>
 
-<button onclick="addProduct()" class="bg-black text-white px-4 py-2">
-Əlavə et
-</button>
+<button onclick="addProduct()" class="bg-black text-white px-4 py-2">Əlavə et</button>
+<button onclick="updateProduct()" class="bg-blue-600 text-white px-4 py-2 ml-2">Yenilə</button>
 </section>
 
 <script>
@@ -84,24 +85,29 @@ const client = window.supabase.createClient(
 
 let allProducts = [];
 let isAdmin = false;
+let editId = null;
 
 // LOAD
 async function loadProducts(){
   const { data } = await client.from('products').select('*');
   allProducts = data || [];
   render(allProducts);
+  document.getElementById('count').innerText = allProducts.length;
 }
 
 // RENDER
 function render(list){
   document.getElementById('products').innerHTML =
   list.map(p => `
-    <div class="border p-2 rounded card cursor-pointer" onclick='openProduct(${JSON.stringify(p)})'>
-      <img src="${p.images?.[0] || ''}" class="h-40 w-full object-cover"/>
+    <div class="border p-2 rounded">
+      <img src="${p.images?.[0] || ''}" class="h-40 w-full object-cover cursor-pointer" onclick='openProduct(${JSON.stringify(p)})'/>
       <h3 class="font-bold">${p.name}</h3>
       <p>${p.price} AZN</p>
 
-      <button onclick="deleteProduct(${p.id})" class="text-red-500 text-xs">Sil</button>
+      ${isAdmin ? `
+        <button onclick="editProduct(${JSON.stringify(p)})" class="text-blue-500 text-xs">Edit</button>
+        <button onclick="deleteProduct(${p.id})" class="text-red-500 text-xs ml-2">Sil</button>
+      ` : ''}
     </div>
   `).join('');
 }
@@ -115,13 +121,11 @@ function filterCat(cat){
 // DETAIL
 function openProduct(p){
   document.getElementById('modal').classList.remove('hidden');
-  document.getElementById('mimg').src = p.images?.[0];
-  document.getElementById('mname').innerText = p.name;
-  document.getElementById('mprice').innerText = p.price + " AZN";
-  document.getElementById('mdesc').innerText = p.description || "";
-
-  document.getElementById('mwa').href =
-    "https://wa.me/994703099330?text=" + encodeURIComponent(p.name);
+  mimg.src = p.images?.[0];
+  mname.innerText = p.name;
+  mprice.innerText = p.price + " AZN";
+  mdesc.innerText = p.description || "";
+  mwa.href = "https://wa.me/994703099330?text=" + encodeURIComponent(p.name);
 }
 
 function closeModal(){
@@ -137,12 +141,14 @@ async function login(){
     .eq('password', p.value);
 
   if(data?.length > 0){
+    isAdmin = true;
     document.getElementById('adminPanel').classList.add('hidden');
     document.getElementById('addBox').classList.remove('hidden');
-    alert("Admin giriş uğurlu!");
-  } else {
-    alert("Səhv məlumat!");
-  }
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('adminStatus').innerText = "ADMIN";
+
+    loadProducts();
+  } else alert("Səhv!");
 }
 
 function openAdmin(){
@@ -156,7 +162,6 @@ async function uploadImages(files){
     let fileName = Date.now() + f.name;
 
     await client.storage.from('product-images').upload(fileName, f);
-
     const { data } = client.storage.from('product-images').getPublicUrl(fileName);
 
     urls.push(data.publicUrl);
@@ -166,8 +171,7 @@ async function uploadImages(files){
 
 // ADD
 async function addProduct(){
-  const files = images.files;
-  const imgs = await uploadImages(files);
+  const imgs = await uploadImages(images.files);
 
   await client.from('products').insert([{
     name: name.value,
@@ -180,9 +184,38 @@ async function addProduct(){
   loadProducts();
 }
 
-// DELETE
+// DELETE (ONLY ADMIN)
 async function deleteProduct(id){
+  if(!isAdmin) return alert("İcazə yoxdur!");
   await client.from('products').delete().eq('id', id);
+  loadProducts();
+}
+
+// EDIT
+function editProduct(p){
+  if(!isAdmin) return;
+
+  editId = p.id;
+  name.value = p.name;
+  price.value = p.price;
+  category.value = p.category;
+  description.value = p.description;
+}
+
+// UPDATE
+async function updateProduct(){
+  if(!isAdmin || !editId) return;
+
+  await client.from('products')
+    .update({
+      name: name.value,
+      price: price.value,
+      category: category.value,
+      description: description.value
+    })
+    .eq('id', editId);
+
+  editId = null;
   loadProducts();
 }
 
