@@ -9,33 +9,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-.card {
-  transition: 0.2s;
+.card { overflow:hidden; }
+.card img {
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  border-radius:10px;
 }
-.card:hover {
-  transform: scale(1.03);
-}
-
-.imgbox {
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
-  border-radius: 10px;
-  background: #f3f4f6;
-}
-
-.imgbox img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.card:hover { transform:scale(1.02); transition:0.2s; }
 </style>
 </head>
 
 <body class="bg-gray-50 text-black">
 
 <!-- HEADER -->
-<header class="p-4 border-b bg-white flex justify-between">
+<header class="p-4 bg-white border-b flex justify-between items-center">
   <h1 class="font-bold text-xl">CaseRoomAZ</h1>
   <button onclick="openAdmin()" class="border px-3 py-1 rounded">Admin</button>
 </header>
@@ -49,30 +37,52 @@
 </div>
 
 <!-- PRODUCTS -->
-<div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4"></div>
+<div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"></div>
 
-<!-- ADMIN -->
-<div id="adminPanel" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-white p-4 w-80 rounded">
-    <h2 class="font-bold mb-2">Admin Login</h2>
-    <input id="u" placeholder="username" class="border p-2 w-full mb-2"/>
-    <input id="p" type="password" placeholder="password" class="border p-2 w-full mb-2"/>
-    <button onclick="login()" class="bg-black text-white px-4 py-2 w-full">Giriş</button>
+<!-- PRODUCT MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-md rounded-xl p-4">
+    <img id="mimg" class="w-full h-64 object-cover rounded"/>
+    <h2 id="mname" class="font-bold text-lg mt-2"></h2>
+    <p id="mprice" class="text-green-600 font-bold"></p>
+    <p id="mdesc" class="text-sm mt-2"></p>
+
+    <a id="mwa" class="block mt-3 bg-green-600 text-white text-center py-2 rounded">
+      WhatsApp Sifariş
+    </a>
+
+    <button onclick="closeModal()" class="w-full mt-2 border py-2 rounded">
+      Bağla
+    </button>
   </div>
 </div>
 
-<!-- ADD -->
+<!-- ADMIN LOGIN -->
+<div id="adminPanel" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center">
+  <div class="bg-white p-4 w-80 rounded">
+    <h2 class="font-bold mb-2">Admin Login</h2>
+
+    <input id="u" placeholder="username" class="border p-2 w-full mb-2"/>
+    <input id="p" type="password" placeholder="password" class="border p-2 w-full mb-2"/>
+
+    <button onclick="login()" class="bg-black text-white w-full py-2 rounded">
+      Giriş
+    </button>
+  </div>
+</div>
+
+<!-- ADD PRODUCT -->
 <section id="addBox" class="hidden p-4 border-t bg-white">
 <h2 class="font-bold mb-2">Məhsul əlavə et</h2>
 
 <input id="name" placeholder="Ad" class="border p-2 w-full mb-2"/>
 <input id="price" placeholder="Qiymət" class="border p-2 w-full mb-2"/>
-<input id="category" placeholder="smartfon / case / aksesuar" class="border p-2 w-full mb-2"/>
+<input id="category" placeholder="Kateqoriya (smartfon/case/aksesuar)" class="border p-2 w-full mb-2"/>
 <textarea id="description" placeholder="Təsvir" class="border p-2 w-full mb-2"></textarea>
 
 <input type="file" id="images" multiple class="mb-2"/>
 
-<button onclick="addProduct()" class="bg-black text-white px-4 py-2 w-full">
+<button onclick="addProduct()" class="bg-black text-white px-4 py-2 rounded">
 Əlavə et
 </button>
 </section>
@@ -93,28 +103,17 @@ async function loadProducts(){
   render(allProducts);
 }
 
-// RENDER (FIXED UI SIZE)
+// RENDER (ALL SAME SIZE LIKE REAL SHOP)
 function render(list){
   document.getElementById('products').innerHTML =
   list.map(p => `
-    <div class="card bg-white border rounded-lg p-2 shadow-sm">
+    <div class="card bg-white border rounded-lg p-2 cursor-pointer"
+      onclick='openProduct(${JSON.stringify(p)})'>
 
-      <div class="imgbox">
-        <img src="${p.images?.[0] || ''}">
-      </div>
+      <img src="${p.images?.[0] || ''}"/>
 
-      <h3 class="font-semibold mt-2">${p.name}</h3>
-      <p class="text-sm text-gray-600">${p.category}</p>
-
-      <div class="flex justify-between items-center mt-1">
-        <span class="font-bold">${p.price} AZN</span>
-
-        <a class="text-green-600 text-xs"
-        href="https://wa.me/994703099330?text=${encodeURIComponent(p.name)}">
-        WhatsApp
-        </a>
-      </div>
-
+      <h3 class="font-semibold mt-2 truncate">${p.name}</h3>
+      <p class="text-green-600 font-bold">${p.price} AZN</p>
     </div>
   `).join('');
 }
@@ -123,6 +122,21 @@ function render(list){
 function filterCat(cat){
   if(cat === 'all') return render(allProducts);
   render(allProducts.filter(p => p.category === cat));
+}
+
+// MODAL
+function openProduct(p){
+  document.getElementById('modal').classList.remove('hidden');
+  mimg.src = p.images?.[0];
+  mname.innerText = p.name;
+  mprice.innerText = p.price + " AZN";
+  mdesc.innerText = p.description || "";
+
+  mwa.href = "https://wa.me/994703099330?text=" + encodeURIComponent(p.name);
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.add('hidden');
 }
 
 // ADMIN LOGIN
@@ -137,7 +151,7 @@ async function login(){
     isAdmin = true;
     adminPanel.classList.add('hidden');
     addBox.classList.remove('hidden');
-    alert("Admin login uğurlu!");
+    alert("Admin aktiv!");
   } else {
     alert("Səhv məlumat!");
   }
@@ -150,7 +164,6 @@ function openAdmin(){
 // UPLOAD
 async function uploadImages(files){
   let urls = [];
-
   for(let f of files){
     let fileName = Date.now() + f.name;
 
@@ -160,7 +173,6 @@ async function uploadImages(files){
 
     urls.push(data.publicUrl);
   }
-
   return urls;
 }
 
