@@ -1,58 +1,111 @@
-
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CaseRoomAZ</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans);background:var(--color-background-tertiary);color:var(--color-text-primary)}
-.header{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-.logo{font-size:18px;font-weight:500}
-.btn{padding:7px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:13px;transition:background 0.15s}
-.btn:hover{background:var(--color-background-secondary)}
-.btn-black{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
-.btn-black:hover{opacity:0.85}
-.btn-green{background:#16a34a;color:#fff;border-color:transparent}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;color:#111}
+
+.header{background:#fff;border-bottom:1px solid #e5e5e5;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.logo{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.header-right{display:flex;align-items:center;gap:10px}
+.admin-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:600}
+
+.btn{padding:8px 16px;border:1px solid #d4d4d4;border-radius:8px;background:#fff;color:#111;cursor:pointer;font-size:13px;font-family:inherit;transition:all 0.15s}
+.btn:hover{background:#f5f5f5}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-black{background:#111;color:#fff;border-color:transparent}
+.btn-black:hover{background:#333}
+.btn-green{background:#16a34a;color:#fff;border-color:transparent;font-size:15px;font-weight:500}
 .btn-green:hover{background:#15803d}
-.btn-red{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
-.filters{display:flex;gap:8px;padding:14px 20px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
-.filter-btn{padding:5px 14px;border:0.5px solid var(--color-border-secondary);border-radius:20px;background:transparent;color:var(--color-text-secondary);cursor:pointer;font-size:13px}
-.filter-btn.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:20px}
-.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:border-color 0.15s}
-.card:hover{border-color:var(--color-border-primary)}
-.card img{width:100%;height:150px;object-fit:cover;display:block;background:var(--color-background-secondary)}
+.btn-red{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
+.btn-blue{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+
+.filters{display:flex;gap:8px;padding:12px 20px;background:#fff;border-bottom:1px solid #e5e5e5;overflow-x:auto}
+.filter-btn{padding:6px 16px;border:1px solid #d4d4d4;border-radius:20px;background:#fff;color:#555;cursor:pointer;font-size:13px;font-family:inherit;white-space:nowrap;transition:all 0.15s}
+.filter-btn.active{background:#111;color:#fff;border-color:transparent}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;padding:20px}
+
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.15s;position:relative}
+.card:hover{border-color:#aaa;transform:translateY(-1px)}
+.card img{width:100%;height:160px;object-fit:cover;display:block;background:#f0f0f0}
+
+.card-badges{position:absolute;top:8px;left:8px;display:flex;gap:4px;flex-wrap:wrap}
+.badge-new{background:#111;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.badge-discount{background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.badge-out{background:#888;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+
 .card-body{padding:10px 12px}
-.card-name{font-size:14px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-price{font-size:13px;color:var(--color-text-secondary)}
-.card-actions{display:flex;gap:6px;padding:8px 12px;border-top:0.5px solid var(--color-border-tertiary)}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:50;align-items:center;justify-content:center}
+.card-name{font-size:14px;font-weight:600;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-prices{display:flex;align-items:center;gap:7px}
+.card-price{font-size:14px;font-weight:700;color:#111}
+.card-old-price{font-size:12px;color:#aaa;text-decoration:line-through}
+.card-cat{font-size:11px;color:#888;margin-top:3px;text-transform:capitalize}
+.card-actions{display:flex;gap:6px;padding:8px 12px;border-top:1px solid #f0f0f0}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
-.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);width:340px;max-width:94vw;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
-.modal-img{width:100%;height:220px;object-fit:cover;display:block;background:var(--color-background-secondary)}
-.modal-body{padding:16px}
-.modal-name{font-size:16px;font-weight:500;margin-bottom:4px}
-.modal-price{font-size:18px;font-weight:500;color:#16a34a;margin-bottom:8px}
-.modal-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:14px}
-.modal-imgs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}
-.modal-imgs img{width:56px;height:56px;object-fit:cover;border-radius:6px;border:0.5px solid var(--color-border-tertiary);cursor:pointer;flex-shrink:0}
-.modal-imgs img.sel{border-color:var(--color-text-primary);border-width:1.5px}
-.admin-box{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin:0 20px 20px}
-.admin-box h3{font-size:15px;font-weight:500;margin-bottom:12px}
-.field{width:100%;padding:8px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:10px;font-family:inherit}
-.field:focus{outline:none;border-color:var(--color-border-primary)}
-.img-preview{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.img-preview img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:0.5px solid var(--color-border-tertiary)}
-.badge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-success);color:var(--color-text-success);font-weight:500}
-.empty{text-align:center;color:var(--color-text-secondary);font-size:14px;padding:40px}
+
+.modal{background:#fff;border-radius:16px;width:400px;max-width:100%;overflow:hidden;border:1px solid #e5e5e5;max-height:92vh;overflow-y:auto}
+.modal-img-wrap{position:relative}
+.modal-img{width:100%;height:270px;object-fit:cover;display:block;background:#f0f0f0}
+.modal-img-badges{position:absolute;top:12px;left:12px;display:flex;gap:6px}
+
+.modal-body{padding:18px}
+.modal-thumbs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.modal-thumbs img{width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #e5e5e5;cursor:pointer;flex-shrink:0;transition:border-color 0.15s}
+.modal-thumbs img.sel{border-color:#111}
+
+.modal-name{font-size:19px;font-weight:700;margin-bottom:8px}
+.modal-prices{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.modal-price{font-size:24px;font-weight:700;color:#16a34a}
+.modal-old-price{font-size:16px;color:#aaa;text-decoration:line-through}
+.modal-desc{font-size:14px;color:#555;line-height:1.7;margin-bottom:16px}
+.modal-stock-out{background:#fee2e2;color:#dc2626;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:12px;text-align:center}
+
+.dashboard{background:#fff;border-bottom:1px solid #e5e5e5;padding:10px 20px;font-size:13px;color:#555;display:none}
+
+.admin-section{padding:0 20px 30px;display:none}
+.admin-box{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;margin-top:16px}
+.admin-box h3{font-size:16px;font-weight:600;margin-bottom:16px}
+.field{width:100%;padding:9px 12px;border:1px solid #d4d4d4;border-radius:8px;font-size:14px;background:#fff;color:#111;margin-bottom:10px;font-family:inherit;transition:border-color 0.15s}
+.field:focus{outline:none;border-color:#111}
+.checkrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px;cursor:pointer}
+.checkrow input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#111}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.img-preview{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.img-preview img{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #e5e5e5}
+.form-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+.login-modal{background:#fff;border-radius:16px;width:320px;max-width:100%;padding:24px;border:1px solid #e5e5e5}
+.login-modal h2{font-size:18px;font-weight:700;margin-bottom:18px}
+.err-msg{color:#dc2626;font-size:13px;margin-top:8px;display:none}
+.empty{text-align:center;color:#888;font-size:14px;padding:60px 20px;grid-column:1/-1}
+
+@media(max-width:480px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px;padding:12px}
+  .modal-img{height:210px}
+  .modal{width:100%}
+  .two-col{grid-template-columns:1fr}
+}
 </style>
+</head>
+<body>
 
 <div class="header">
   <span class="logo">CaseRoomAZ</span>
-  <div style="display:flex;align-items:center;gap:10px">
-    <span id="adminBadge" class="badge" style="display:none">Admin</span>
-    <button id="adminBtn" class="btn" onclick="toggleAdmin()">Admin</button>
+  <div class="header-right">
+    <span id="adminBadge" class="admin-badge" style="display:none">✓ Admin</span>
+    <button class="btn btn-black" id="adminBtn" onclick="toggleAdmin()">Admin</button>
   </div>
 </div>
 
-<div id="dashboard" style="display:none;padding:10px 20px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;color:var(--color-text-secondary)">
-  Cəmi <b id="totalCount">0</b> məhsul
+<div class="dashboard" id="dashboard">
+  Cəmi <strong id="totalCount">0</strong> məhsul &nbsp;|&nbsp;
+  Stokda yoxdur: <strong id="outCount">0</strong>
 </div>
 
 <div class="filters">
@@ -60,44 +113,79 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);co
   <button class="filter-btn" onclick="filterCat('case',this)">Case</button>
   <button class="filter-btn" onclick="filterCat('charger',this)">Charger</button>
   <button class="filter-btn" onclick="filterCat('cable',this)">Cable</button>
+  <button class="filter-btn" onclick="filterCat('other',this)">Digər</button>
 </div>
 
-<div id="products" class="grid"><div class="empty">Yüklənir...</div></div>
+<div id="products" class="grid">
+  <div class="empty">Məhsullar yüklənir...</div>
+</div>
 
-<div id="adminPanel" style="margin:0 20px 20px;display:none">
+<!-- ADMIN PANEL -->
+<div class="admin-section" id="adminSection">
   <div class="admin-box">
-    <h3 id="formTitle">Yeni məhsul əlavə et</h3>
-    <input class="field" id="fName" placeholder="Məhsulun adı"/>
-    <input class="field" id="fPrice" placeholder="Qiymət (AZN)" type="number"/>
+    <h3 id="formTitle">➕ Yeni məhsul əlavə et</h3>
+
+    <input class="field" id="fName" placeholder="Məhsulun adı *"/>
+
+    <div class="two-col">
+      <input class="field" id="fPrice" placeholder="Qiymət (AZN) *" type="number" min="0" step="0.01" style="margin-bottom:0"/>
+      <input class="field" id="fOldPrice" placeholder="Köhnə qiymət (AZN)" type="number" min="0" step="0.01" style="margin-bottom:0"/>
+    </div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px;margin-top:4px">Köhnə qiymət yazılsa endirim göstərilir</div>
+
     <select class="field" id="fCat">
-      <option value="">Kateqoriya seç</option>
+      <option value="">Kateqoriya seçin *</option>
       <option value="case">Case</option>
       <option value="charger">Charger</option>
       <option value="cable">Cable</option>
       <option value="other">Digər</option>
     </select>
-    <textarea class="field" id="fDesc" placeholder="Ətraflı məlumat" rows="3"></textarea>
-    <div style="margin-bottom:10px">
-      <label style="font-size:13px;color:var(--color-text-secondary);display:block;margin-bottom:6px">Şəkillər (birdən çox seçə bilərsiniz)</label>
-      <input type="file" id="fImgs" multiple accept="image/*" onchange="previewImgs(this)" style="font-size:13px"/>
-    </div>
+
+    <textarea class="field" id="fDesc" placeholder="Məhsul haqqında ətraflı məlumat" rows="3"></textarea>
+
+    <textarea class="field" id="fWA" placeholder="WhatsApp mesajı (boş buraxsanız avtomatik yazılır)" rows="2"></textarea>
+
+    <label class="checkrow">
+      <input type="checkbox" id="fNew"/> Yeni məhsul (NEW badge)
+    </label>
+    <label class="checkrow">
+      <input type="checkbox" id="fDiscount"/> Endirimli məhsul (SALE badge)
+    </label>
+    <label class="checkrow">
+      <input type="checkbox" id="fStock" checked/> Stokda var
+    </label>
+
+    <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;font-weight:500;margin-top:4px">
+      📸 Şəkillər (birdən çox seçə bilərsiniz)
+    </label>
+    <input type="file" id="fImgs" multiple accept="image/*" onchange="previewImgs(this)" style="font-size:13px;margin-bottom:10px;width:100%"/>
     <div class="img-preview" id="imgPreview"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+    <div class="form-btns">
       <button class="btn btn-black" id="saveBtn" onclick="saveProduct()">Əlavə et</button>
-      <button class="btn" id="cancelEdit" onclick="cancelEdit()" style="display:none">Ləğv et</button>
+      <button class="btn" id="cancelBtn" onclick="cancelEdit()" style="display:none">Ləğv et</button>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="productModal">
+<!-- MƏHSUL MODALI -->
+<div class="overlay" id="productModal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <img id="mImg" class="modal-img" src="" alt=""/>
+    <div class="modal-img-wrap">
+      <img id="mImg" class="modal-img" src="" alt=""/>
+      <div class="modal-img-badges" id="mBadges"></div>
+    </div>
     <div class="modal-body">
-      <div class="modal-imgs" id="mThumbs"></div>
+      <div class="modal-thumbs" id="mThumbs"></div>
+      <div id="mStockOut" class="modal-stock-out" style="display:none">⚠️ Bu məhsul hazırda stokda yoxdur</div>
       <div class="modal-name" id="mName"></div>
-      <div class="modal-price" id="mPrice"></div>
+      <div class="modal-prices">
+        <span class="modal-price" id="mPrice"></span>
+        <span class="modal-old-price" id="mOldPrice"></span>
+      </div>
       <div class="modal-desc" id="mDesc"></div>
-      <a id="mWA" href="#" class="btn btn-green" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">
+      <a id="mWA" href="#" target="_blank" class="btn btn-green"
+        style="display:block;text-align:center;text-decoration:none;padding:13px;border-radius:10px;margin-bottom:10px">
         📱 WhatsApp ilə sifariş ver
       </a>
       <button class="btn" style="width:100%" onclick="closeModal()">Bağla</button>
@@ -105,229 +193,336 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);co
   </div>
 </div>
 
-<div class="overlay" id="loginModal">
-  <div class="modal">
-    <div class="modal-body">
-      <div class="modal-name" style="margin-bottom:16px">Admin Girişi</div>
-      <input class="field" id="lUser" placeholder="İstifadəçi adı"/>
-      <input class="field" id="lPass" type="password" placeholder="Şifrə"/>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-black" style="flex:1" onclick="doLogin()">Giriş</button>
-        <button class="btn" style="flex:1" onclick="closeLogin()">Bağla</button>
-      </div>
-      <div id="loginErr" style="color:var(--color-text-danger);font-size:13px;margin-top:8px;display:none">Səhv istifadəçi adı və ya şifrə</div>
+<!-- ADMİN GİRİŞ MODALI -->
+<div class="overlay" id="loginModal" onclick="if(event.target===this)closeLogin()">
+  <div class="login-modal">
+    <h2>🔐 Admin Girişi</h2>
+    <input class="field" id="lUser" placeholder="İstifadəçi adı" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <input class="field" id="lPass" type="password" placeholder="Şifrə" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-black" style="flex:1" id="loginBtn" onclick="doLogin()">Giriş</button>
+      <button class="btn" style="flex:1" onclick="closeLogin()">Bağla</button>
     </div>
+    <div class="err-msg" id="loginErr">❌ Səhv istifadəçi adı və ya şifrə</div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+// ===== KONFİQURASİYA =====
 const SB_URL = "https://teqgdnjukgrzxovtypwj.supabase.co";
 const SB_KEY = "sb_publishable_N_DPs4mkp9GsB4phSOnuUw_Y6W-TmSL";
 const WA_NUM = "994703099330";
+// =========================
 
-let client, allProducts=[], isAdmin=false, editId=null, currentImgFiles=[];
+const client = window.supabase.createClient(SB_URL, SB_KEY);
+let allProducts = [], isAdmin = false, editId = null, currentFiles = [];
 
-window.addEventListener('load', async ()=>{
-  if(window.supabase){
-    client = window.supabase.createClient(SB_URL, SB_KEY);
-    await loadProducts();
-  } else {
-    document.getElementById('products').innerHTML = '<div class="empty">Supabase yüklənmədi. İnternet bağlantınızı yoxlayın.</div>';
-  }
-});
-
-async function loadProducts(){
-  try{
-    const {data,error} = await client.from('products').select('*').order('id',{ascending:false});
-    if(error) throw error;
-    allProducts = data||[];
+// ---------- YÜKLƏMƏ ----------
+async function loadProducts() {
+  try {
+    const { data, error } = await client
+      .from('products').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    allProducts = data || [];
     document.getElementById('totalCount').innerText = allProducts.length;
+    document.getElementById('outCount').innerText = allProducts.filter(p => !p.stock).length;
     renderProducts(allProducts);
-  } catch(e){
-    document.getElementById('products').innerHTML = '<div class="empty">Məlumatlar yüklənmədi: '+e.message+'</div>';
+  } catch (e) {
+    document.getElementById('products').innerHTML =
+      `<div class="empty">⚠️ Məlumatlar yüklənmədi: ${e.message}</div>`;
   }
 }
 
-function renderProducts(list){
+// ---------- RENDER ----------
+function renderProducts(list) {
   const el = document.getElementById('products');
-  if(!list.length){el.innerHTML='<div class="empty">Məhsul tapılmadı</div>';return;}
-  el.innerHTML = list.map(p=>{
-    const img = p.images?.[0]||'';
-    return `<div class="card" onclick="openProduct(${p.id})">
-      <img src="${img}" alt="${p.name}" onerror="this.style.background='var(--color-background-secondary)'"/>
-      <div class="card-body">
-        <div class="card-name">${p.name}</div>
-        <div class="card-price">${p.price} AZN</div>
-      </div>
-      ${isAdmin?`<div class="card-actions">
-        <button class="btn" style="font-size:12px;padding:4px 10px" onclick="event.stopPropagation();startEdit(${p.id})">✏️ Düzəlt</button>
-        <button class="btn btn-red" style="font-size:12px;padding:4px 10px" onclick="event.stopPropagation();deleteProduct(${p.id})">🗑 Sil</button>
-      </div>`:''}
-    </div>`;
+  if (!list.length) { el.innerHTML = '<div class="empty">Məhsul tapılmadı</div>'; return; }
+
+  el.innerHTML = list.map(p => {
+    const img = (p.images && p.images[0]) ? p.images[0] : '';
+    const badges = [
+      p.is_new ? '<span class="badge-new">NEW</span>' : '',
+      p.is_discount ? '<span class="badge-discount">SALE</span>' : '',
+      !p.stock ? '<span class="badge-out">STOK YOX</span>' : ''
+    ].join('');
+    const priceHtml = p.old_price
+      ? `<span class="card-price">${p.price} AZN</span><span class="card-old-price">${p.old_price} AZN</span>`
+      : `<span class="card-price">${p.price} AZN</span>`;
+    const adminBtns = isAdmin ? `
+      <div class="card-actions">
+        <button class="btn btn-blue" style="font-size:12px;padding:5px 10px;flex:1"
+          onclick="event.stopPropagation();startEdit(${p.id})">✏️ Düzəlt</button>
+        <button class="btn btn-red" style="font-size:12px;padding:5px 10px;flex:1"
+          onclick="event.stopPropagation();deleteProduct(${p.id})">🗑 Sil</button>
+      </div>` : '';
+    return `
+      <div class="card" onclick="openProduct(${p.id})">
+        <div style="position:relative">
+          <img src="${img}" alt="${p.name}" onerror="this.style.background='#f0f0f0';this.src=''"/>
+          ${badges ? `<div class="card-badges">${badges}</div>` : ''}
+        </div>
+        <div class="card-body">
+          <div class="card-name">${p.name}</div>
+          <div class="card-prices">${priceHtml}</div>
+          <div class="card-cat">${p.category || ''}</div>
+        </div>
+        ${adminBtns}
+      </div>`;
   }).join('');
 }
 
-function filterCat(cat, btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  renderProducts(cat==='all'?allProducts:allProducts.filter(p=>p.category===cat));
+// ---------- FİLTR ----------
+function filterCat(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderProducts(cat === 'all' ? allProducts : allProducts.filter(p => p.category === cat));
 }
 
-function openProduct(id){
-  const p = allProducts.find(x=>x.id===id);
-  if(!p) return;
-  const imgs = p.images||[];
-  document.getElementById('mImg').src = imgs[0]||'';
+// ---------- MƏHSUL DETALI ----------
+function openProduct(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return;
+
+  const imgs = p.images || [];
+  document.getElementById('mImg').src = imgs[0] || '';
   document.getElementById('mName').innerText = p.name;
-  document.getElementById('mPrice').innerText = p.price+' AZN';
-  document.getElementById('mDesc').innerText = p.description||'';
+  document.getElementById('mPrice').innerText = p.price + ' AZN';
+
+  const oldEl = document.getElementById('mOldPrice');
+  oldEl.innerText = p.old_price ? p.old_price + ' AZN' : '';
+
+  document.getElementById('mDesc').innerText = p.description || '';
+  document.getElementById('mStockOut').style.display = p.stock ? 'none' : 'block';
+
+  // badges
+  const bEl = document.getElementById('mBadges');
+  bEl.innerHTML = [
+    p.is_new ? '<span class="badge-new" style="font-size:12px;padding:3px 9px">NEW</span>' : '',
+    p.is_discount ? '<span class="badge-discount" style="font-size:12px;padding:3px 9px">SALE</span>' : ''
+  ].join('');
+
+  // thumbnails
   const thumbs = document.getElementById('mThumbs');
-  if(imgs.length>1){
-    thumbs.innerHTML = imgs.map((u,i)=>`<img src="${u}" class="${i===0?'sel':''}" onclick="switchImg(this,'${u}')" alt=""/>`).join('');
-    thumbs.style.display='flex';
-  } else { thumbs.style.display='none'; }
-  const msg = `Salam! ${p.name} məhsulunu sifariş etmək istəyirəm. Qiymət: ${p.price} AZN`;
-  document.getElementById('mWA').href = `https://wa.me/${WA_NUM}?text=${encodeURIComponent(msg)}`;
+  if (imgs.length > 1) {
+    thumbs.innerHTML = imgs.map((u, i) =>
+      `<img src="${u}" class="${i === 0 ? 'sel' : ''}" onclick="switchImg(this,'${u}')" alt=""/>`
+    ).join('');
+    thumbs.style.display = 'flex';
+  } else {
+    thumbs.style.display = 'none';
+  }
+
+  // WhatsApp
+  const waText = p.whatsapp_text ||
+    `Salam! "${p.name}" məhsulunu sifariş etmək istəyirəm.\nQiymət: ${p.price} AZN`;
+  document.getElementById('mWA').href =
+    `https://wa.me/${WA_NUM}?text=${encodeURIComponent(waText)}`;
+
   document.getElementById('productModal').classList.add('open');
 }
 
-function switchImg(el,url){
-  document.getElementById('mImg').src=url;
-  document.querySelectorAll('#mThumbs img').forEach(i=>i.classList.remove('sel'));
+function switchImg(el, url) {
+  document.getElementById('mImg').src = url;
+  document.querySelectorAll('#mThumbs img').forEach(i => i.classList.remove('sel'));
   el.classList.add('sel');
 }
 
-function closeModal(){document.getElementById('productModal').classList.remove('open');}
-
-function toggleAdmin(){
-  if(isAdmin){ logoutAdmin(); return; }
-  document.getElementById('loginModal').classList.add('open');
-  document.getElementById('loginErr').style.display='none';
+function closeModal() {
+  document.getElementById('productModal').classList.remove('open');
 }
-function closeLogin(){document.getElementById('loginModal').classList.remove('open');}
 
-async function doLogin(){
-  const u=document.getElementById('lUser').value.trim();
-  const pw=document.getElementById('lPass').value;
-  try{
-    const {data} = await client.from('admins').select('*').eq('username',u).eq('password',pw);
-    if(data&&data.length>0){
-      isAdmin=true;
-      document.getElementById('adminBadge').style.display='inline';
-      document.getElementById('adminBtn').innerText='Çıxış';
-      document.getElementById('dashboard').style.display='block';
-      document.getElementById('adminPanel').style.display='block';
+// ---------- ADMİN ----------
+function toggleAdmin() {
+  if (isAdmin) { logoutAdmin(); return; }
+  document.getElementById('lUser').value = '';
+  document.getElementById('lPass').value = '';
+  document.getElementById('loginErr').style.display = 'none';
+  document.getElementById('loginModal').classList.add('open');
+  setTimeout(() => document.getElementById('lUser').focus(), 100);
+}
+
+function closeLogin() {
+  document.getElementById('loginModal').classList.remove('open');
+}
+
+async function doLogin() {
+  const u = document.getElementById('lUser').value.trim();
+  const pw = document.getElementById('lPass').value;
+  if (!u || !pw) return;
+  const btn = document.getElementById('loginBtn');
+  btn.innerText = '...'; btn.disabled = true;
+  try {
+    const { data } = await client.from('admins').select('*')
+      .eq('username', u).eq('password', pw);
+    if (data && data.length > 0) {
+      isAdmin = true;
+      document.getElementById('adminBadge').style.display = 'inline';
+      document.getElementById('adminBtn').innerText = 'Çıxış';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('adminSection').style.display = 'block';
       closeLogin();
       renderProducts(allProducts);
     } else {
-      document.getElementById('loginErr').style.display='block';
+      document.getElementById('loginErr').style.display = 'block';
     }
-  } catch(e){
-    document.getElementById('loginErr').innerText='Xəta: '+e.message;
-    document.getElementById('loginErr').style.display='block';
+  } catch (e) {
+    document.getElementById('loginErr').innerText = '⚠️ Xəta: ' + e.message;
+    document.getElementById('loginErr').style.display = 'block';
   }
+  btn.innerText = 'Giriş'; btn.disabled = false;
 }
 
-function logoutAdmin(){
-  isAdmin=false;
-  document.getElementById('adminBadge').style.display='none';
-  document.getElementById('adminBtn').innerText='Admin';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('adminPanel').style.display='none';
+function logoutAdmin() {
+  if (!confirm('Çıxış etmək istəyirsiniz?')) return;
+  isAdmin = false; editId = null;
+  document.getElementById('adminBadge').style.display = 'none';
+  document.getElementById('adminBtn').innerText = 'Admin';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('adminSection').style.display = 'none';
   renderProducts(allProducts);
 }
 
-function previewImgs(input){
-  currentImgFiles = Array.from(input.files);
+// ---------- ŞƏKİL ----------
+function previewImgs(input) {
+  currentFiles = Array.from(input.files);
   const prev = document.getElementById('imgPreview');
-  prev.innerHTML='';
-  currentImgFiles.forEach(f=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      const img=document.createElement('img');
-      img.src=e.target.result;
+  prev.innerHTML = '';
+  currentFiles.forEach(f => {
+    const r = new FileReader();
+    r.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
       prev.appendChild(img);
     };
     r.readAsDataURL(f);
   });
 }
 
-async function uploadImages(files){
-  const urls=[];
-  for(const f of files){
-    const name=`${Date.now()}_${Math.random().toString(36).slice(2)}_${f.name}`;
-    const {error} = await client.storage.from('product-images').upload(name,f,{cacheControl:'3600',upsert:false});
-    if(!error){
-      const {data} = client.storage.from('product-images').getPublicUrl(name);
+async function uploadImages(files) {
+  const urls = [];
+  for (const f of files) {
+    const name = `${Date.now()}_${Math.random().toString(36).slice(2)}_${f.name}`;
+    const { error } = await client.storage
+      .from('product-images').upload(name, f, { cacheControl: '3600', upsert: false });
+    if (!error) {
+      const { data } = client.storage.from('product-images').getPublicUrl(name);
       urls.push(data.publicUrl);
     }
   }
   return urls;
 }
 
-async function saveProduct(){
-  const name=document.getElementById('fName').value.trim();
-  const price=document.getElementById('fPrice').value;
-  const cat=document.getElementById('fCat').value;
-  const desc=document.getElementById('fDesc').value.trim();
-  if(!name||!price){alert('Ad və qiymət mütləqdir');return;}
-  const btn=document.getElementById('saveBtn');
-  btn.innerText='Saxlanılır...';btn.disabled=true;
-  try{
-    let imgs=[];
-    if(currentImgFiles.length>0) imgs=await uploadImages(currentImgFiles);
-    if(editId){
-      const upd={name,price,category:cat,description:desc};
-      if(imgs.length>0) upd.images=imgs;
-      await client.from('products').update(upd).eq('id',editId);
+// ---------- SAXLAMA ----------
+async function saveProduct() {
+  const name     = document.getElementById('fName').value.trim();
+  const price    = document.getElementById('fPrice').value;
+  const oldPrice = document.getElementById('fOldPrice').value;
+  const cat      = document.getElementById('fCat').value;
+  const desc     = document.getElementById('fDesc').value.trim();
+  const waText   = document.getElementById('fWA').value.trim();
+  const isNew    = document.getElementById('fNew').checked;
+  const isDisc   = document.getElementById('fDiscount').checked;
+  const inStock  = document.getElementById('fStock').checked;
+
+  if (!name)  { alert('Məhsulun adını daxil edin'); return; }
+  if (!price) { alert('Qiyməti daxil edin'); return; }
+  if (!cat)   { alert('Kateqoriya seçin'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.innerText = '⏳ Saxlanılır...'; btn.disabled = true;
+
+  try {
+    let imgs = [];
+    if (currentFiles.length > 0) imgs = await uploadImages(currentFiles);
+
+    const row = {
+      name,
+      price: parseFloat(price),
+      old_price: oldPrice ? parseFloat(oldPrice) : null,
+      category: cat,
+      description: desc,
+      whatsapp_text: waText || null,
+      is_new: isNew,
+      is_discount: isDisc,
+      stock: inStock
+    };
+
+    if (editId) {
+      if (imgs.length > 0) row.images = imgs;
+      const { error } = await client.from('products').update(row).eq('id', editId);
+      if (error) throw error;
     } else {
-      await client.from('products').insert([{name,price,category:cat,description:desc,images:imgs}]);
+      row.images = imgs;
+      const { error } = await client.from('products').insert([row]);
+      if (error) throw error;
     }
+
     resetForm();
     await loadProducts();
-  } catch(e){alert('Xəta: '+e.message);}
-  btn.innerText=editId?'Yenilə':'Əlavə et';btn.disabled=false;
-}
-
-function startEdit(id){
-  const p=allProducts.find(x=>x.id===id);
-  if(!p) return;
-  editId=p.id;
-  document.getElementById('fName').value=p.name;
-  document.getElementById('fPrice').value=p.price;
-  document.getElementById('fCat').value=p.category||'';
-  document.getElementById('fDesc').value=p.description||'';
-  document.getElementById('formTitle').innerText='Məhsulu düzəlt';
-  document.getElementById('saveBtn').innerText='Yenilə';
-  document.getElementById('cancelEdit').style.display='inline-block';
-  document.getElementById('imgPreview').innerHTML='';
-  if(p.images?.length){
-    const prev=document.getElementById('imgPreview');
-    p.images.forEach(u=>{const img=document.createElement('img');img.src=u;prev.appendChild(img);});
+    alert(editId ? '✅ Məhsul yeniləndi!' : '✅ Məhsul əlavə edildi!');
+  } catch (e) {
+    alert('❌ Xəta: ' + e.message);
   }
-  document.getElementById('adminPanel').scrollIntoView({behavior:'smooth'});
+
+  btn.innerText = editId ? 'Yenilə' : 'Əlavə et';
+  btn.disabled = false;
 }
 
-function cancelEdit(){resetForm();}
+// ---------- REDAKTƏ ----------
+function startEdit(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return;
+  editId = p.id;
+  document.getElementById('fName').value      = p.name;
+  document.getElementById('fPrice').value     = p.price;
+  document.getElementById('fOldPrice').value  = p.old_price || '';
+  document.getElementById('fCat').value       = p.category || '';
+  document.getElementById('fDesc').value      = p.description || '';
+  document.getElementById('fWA').value        = p.whatsapp_text || '';
+  document.getElementById('fNew').checked     = p.is_new || false;
+  document.getElementById('fDiscount').checked = p.is_discount || false;
+  document.getElementById('fStock').checked   = p.stock !== false;
 
-function resetForm(){
-  editId=null;currentImgFiles=[];
-  ['fName','fPrice','fDesc'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('fCat').value='';
-  document.getElementById('imgPreview').innerHTML='';
-  document.getElementById('fImgs').value='';
-  document.getElementById('formTitle').innerText='Yeni məhsul əlavə et';
-  document.getElementById('saveBtn').innerText='Əlavə et';
-  document.getElementById('cancelEdit').style.display='none';
+  const prev = document.getElementById('imgPreview');
+  prev.innerHTML = '';
+  (p.images || []).forEach(u => {
+    const img = document.createElement('img');
+    img.src = u; prev.appendChild(img);
+  });
+
+  document.getElementById('formTitle').innerText = '✏️ Məhsulu düzəlt';
+  document.getElementById('saveBtn').innerText   = 'Yenilə';
+  document.getElementById('cancelBtn').style.display = 'inline-block';
+  document.getElementById('adminSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-async function deleteProduct(id){
-  if(!confirm('Bu məhsulu silmək istəyirsiniz?')) return;
-  await client.from('products').delete().eq('id',id);
+function cancelEdit() { resetForm(); }
+
+function resetForm() {
+  editId = null; currentFiles = [];
+  ['fName','fPrice','fOldPrice','fDesc','fWA'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fCat').value          = '';
+  document.getElementById('fNew').checked        = false;
+  document.getElementById('fDiscount').checked   = false;
+  document.getElementById('fStock').checked      = true;
+  document.getElementById('fImgs').value         = '';
+  document.getElementById('imgPreview').innerHTML = '';
+  document.getElementById('formTitle').innerText = '➕ Yeni məhsul əlavə et';
+  document.getElementById('saveBtn').innerText   = 'Əlavə et';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+// ---------- SİLMƏ ----------
+async function deleteProduct(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (!confirm(`"${p?.name}" məhsulunu silmək istəyirsiniz?`)) return;
+  const { error } = await client.from('products').delete().eq('id', id);
+  if (error) { alert('Xəta: ' + error.message); return; }
   await loadProducts();
 }
 
-document.getElementById('productModal').addEventListener('click',e=>{if(e.target===document.getElementById('productModal'))closeModal();});
-document.getElementById('loginModal').addEventListener('click',e=>{if(e.target===document.getElementById('loginModal'))closeLogin();});
+loadProducts();
 </script>
+</body>
+</html>
