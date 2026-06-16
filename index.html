@@ -7,20 +7,41 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+.card:hover { transform: scale(1.02); transition: 0.2s; }
+</style>
 </head>
 
 <body class="bg-white text-black">
 
 <header class="p-4 border-b flex justify-between">
   <h1 class="font-bold text-xl">CaseRoomAZ</h1>
+  <button onclick="openAdmin()">Admin</button>
 </header>
 
 <!-- PRODUCTS -->
 <div id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"></div>
 
-<!-- ADMIN -->
-<section class="p-4 border-t">
-<h2 class="font-bold text-lg mb-3">Admin Panel</h2>
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white p-4 w-80 rounded">
+
+    <h2 class="font-bold mb-2">Admin Login</h2>
+
+    <input id="u" placeholder="username" class="border p-2 w-full mb-2"/>
+    <input id="p" type="password" placeholder="password" class="border p-2 w-full mb-2"/>
+
+    <button onclick="login()" class="bg-black text-white px-4 py-2 w-full">
+      Giriş
+    </button>
+
+  </div>
+</div>
+
+<!-- ADD PRODUCT -->
+<section id="addBox" class="p-4 border-t hidden">
+<h2 class="font-bold mb-2">Məhsul əlavə et</h2>
 
 <input id="name" placeholder="Ad" class="border p-2 w-full mb-2"/>
 <input id="price" placeholder="Qiymət" class="border p-2 w-full mb-2"/>
@@ -30,51 +51,74 @@
 <input type="file" id="images" multiple class="mb-2"/>
 
 <button onclick="addProduct()" class="bg-black text-white px-4 py-2">
-Məhsul əlavə et
+Əlavə et
 </button>
 </section>
 
 <script>
 const supabase = supabase.createClient(
   "https://teqgdnjukgrzxovtypwj.supabase.co",
-  "sb_publishable_N_DPs4mkp9GsB4phSOnuUw_Y6W-TmSL"
+  "YOUR_ANON_KEY"
 );
 
-// upload image to supabase storage
+let isAdmin = false;
+
+// ADMIN LOGIN
+async function login(){
+  let u = document.getElementById('u').value;
+  let p = document.getElementById('p').value;
+
+  let { data } = await supabase
+    .from('admins')
+    .select('*')
+    .eq('username', u)
+    .eq('password', p);
+
+  if(data.length > 0){
+    isAdmin = true;
+    document.getElementById('adminPanel').classList.add('hidden');
+    document.getElementById('addBox').classList.remove('hidden');
+    alert("Admin giriş uğurlu!");
+  } else {
+    alert("Səhv məlumat!");
+  }
+}
+
+function openAdmin(){
+  document.getElementById('adminPanel').classList.remove('hidden');
+}
+
+// UPLOAD
 async function uploadImages(files){
   let urls = [];
 
-  for (let file of files) {
-    const fileName = Date.now() + "-" + file.name;
+  for(let f of files){
+    let fileName = Date.now() + f.name;
 
-    const { data, error } = await supabase.storage
-      .from("product-images")
-      .upload(fileName, file);
+    await supabase.storage
+      .from('product-images')
+      .upload(fileName, f);
 
-    if (error) console.log(error);
-
-    const { data: publicUrl } = supabase.storage
-      .from("product-images")
+    let { data } = supabase.storage
+      .from('product-images')
       .getPublicUrl(fileName);
 
-    urls.push(publicUrl.publicUrl);
+    urls.push(data.publicUrl);
   }
 
   return urls;
 }
 
-// add product
+// ADD PRODUCT
 async function addProduct(){
+  let files = document.getElementById('images').files;
+  let images = await uploadImages(files);
 
-  const files = document.getElementById("images").files;
-
-  const images = await uploadImages(files);
-
-  await supabase.from("products").insert([{
-    name: document.getElementById("name").value,
-    price: document.getElementById("price").value,
-    category: document.getElementById("category").value,
-    description: document.getElementById("description").value,
+  await supabase.from('products').insert([{
+    name: name.value,
+    price: price.value,
+    category: category.value,
+    description: description.value,
     images: images
   }]);
 
@@ -82,27 +126,23 @@ async function addProduct(){
   loadProducts();
 }
 
-// load products
+// LOAD
 async function loadProducts(){
+  let { data } = await supabase.from('products').select('*');
 
-  let { data } = await supabase
-    .from("products")
-    .select("*")
-    .order("id", { ascending:false });
-
-  document.getElementById("products").innerHTML = data.map(p => `
-    <div class="border rounded p-2">
+  document.getElementById('products').innerHTML =
+  data.map(p => `
+    <div class="border p-2 rounded card">
       <img src="${p.images?.[0]}" class="h-40 w-full object-cover"/>
-      <h3 class="font-bold mt-2">${p.name}</h3>
+      <h3 class="font-bold">${p.name}</h3>
       <p>${p.price} AZN</p>
 
-      <a target="_blank"
-      href="https://wa.me/994703099330?text=${p.name} sifariş etmək istəyirəm"
+      <a href="https://wa.me/994703099330?text=${p.name}"
       class="text-green-600 text-sm">
       WhatsApp
       </a>
     </div>
-  `).join("");
+  `).join('');
 }
 
 loadProducts();
